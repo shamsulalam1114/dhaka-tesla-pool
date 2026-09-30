@@ -73,8 +73,8 @@ export default function BookRidePage() {
         <div className="p-4 bg-blue-50 border border-blue-200 rounded mb-6">
           <p className="text-sm text-blue-800 mb-2">Estimated Fares:</p>
           <div className="flex justify-between font-semibold">
-            <span>Solo Ride: {estimate.soloFareTaka} BDT</span>
-            <span className="text-green-600">Pool Fare: {estimate.pooledFareTaka} BDT</span>
+            <span>Solo Ride: {estimate.soloFare} BDT</span>
+            <span className="text-green-600">Pool Fare: {estimate.pooledFare} BDT</span>
           </div>
         </div>
       )}

@@ -2,25 +2,33 @@ import { Injectable, BadRequestException, ForbiddenException, NotFoundException 
 import { PrismaService } from '../prisma/prisma.service';
 import { RequestRideDto } from './rides.dto';
 
-const ZONE_DISTANCE_PAISA: Record<string, number> = {
+const ZONE_DISTANCES: Record<string, number> = {
   Banani: 0,
-  Mohakhali: 2000,
-  'Gulshan 1': 2500,
-  'Gulshan 2': 3000,
-  Dhanmondi: 4500,
-  Mirpur: 5000,
-  Uttara: 6000,
-  Farmgate: 3500,
-  Bashundhara: 5500,
+  Mohakhali: 20,
+  'Gulshan 1': 25,
+  'Gulshan 2': 30,
+  Dhanmondi: 45,
+  Mirpur: 50,
+  Uttara: 60,
+  Farmgate: 35,
+  Bashundhara: 55,
 };
 
-const BASE_FARE_PAISA = 5000;
-const POOL_DISCOUNT_PAISA = 1000;
+const BASE_FARE = 50;
+const POOL_DISCOUNT = 10;
 
 function calculateFare(destinationZone: string, isPooled: boolean): number {
-  const distance = ZONE_DISTANCE_PAISA[destinationZone] ?? 3000;
-  const discount = isPooled ? POOL_DISCOUNT_PAISA : 0;
-  return BASE_FARE_PAISA + distance - discount;
+  let distance = 30;
+  if (ZONE_DISTANCES[destinationZone]) {
+    distance = ZONE_DISTANCES[destinationZone];
+  }
+  
+  let discount = 0;
+  if (isPooled) {
+    discount = POOL_DISCOUNT;
+  }
+  
+  return BASE_FARE + distance - discount;
 }
 
 @Injectable()
@@ -30,7 +38,7 @@ export class RidesService {
   async requestRide(userId: string, dto: RequestRideDto) {
     const alreadyOnRide = await this.prisma.ridePassenger.findFirst({
       where: {
-        userId,
+        userId: userId,
         isCancelled: false,
         ride: { status: { in: ['REQUESTED', 'MATCHED', 'DRIVER_ARRIVED', 'STARTED'] } },
       },
@@ -56,7 +64,7 @@ export class RidesService {
       const available = capacity - matchableRide.occupiedSeats;
 
       if (available >= dto.seatsRequested) {
-        const fareTotalPaisa = calculateFare(dto.destinationZone, true);
+        const totalFare = calculateFare(dto.destinationZone, true);
 
         return this.prisma.$transaction(async (tx) => {
           const fresh = await tx.ride.findUnique({ where: { id: matchableRide.id } });
@@ -72,14 +80,14 @@ export class RidesService {
           return tx.ridePassenger.create({
             data: {
               rideId: matchableRide.id,
-              userId,
+              userId: userId,
               pickupZone: dto.pickupZone,
               destinationZone: dto.destinationZone,
               seatsRequested: dto.seatsRequested,
-              fareBasePaisa: BASE_FARE_PAISA,
-              fareDistancePaisa: ZONE_DISTANCE_PAISA[dto.destinationZone] ?? 3000,
-              fareDiscountPaisa: POOL_DISCOUNT_PAISA,
-              fareTotalPaisa,
+              baseFare: BASE_FARE,
+              distanceFare: ZONE_DISTANCES[dto.destinationZone] || 30,
+              poolDiscount: POOL_DISCOUNT,
+              totalFare: totalFare,
             },
             include: { ride: true },
           });
@@ -96,19 +104,19 @@ export class RidesService {
       },
     });
 
-    const fareTotalPaisa = calculateFare(dto.destinationZone, false);
+    const totalFare = calculateFare(dto.destinationZone, false);
 
     return this.prisma.ridePassenger.create({
       data: {
         rideId: newRide.id,
-        userId,
+        userId: userId,
         pickupZone: dto.pickupZone,
         destinationZone: dto.destinationZone,
         seatsRequested: dto.seatsRequested,
-        fareBasePaisa: BASE_FARE_PAISA,
-        fareDistancePaisa: ZONE_DISTANCE_PAISA[dto.destinationZone] ?? 3000,
-        fareDiscountPaisa: 0,
-        fareTotalPaisa,
+        baseFare: BASE_FARE,
+        distanceFare: ZONE_DISTANCES[dto.destinationZone] || 30,
+        poolDiscount: 0,
+        totalFare: totalFare,
       },
       include: { ride: true },
     });
@@ -117,7 +125,7 @@ export class RidesService {
   async getMyCurrentRide(userId: string) {
     return this.prisma.ridePassenger.findFirst({
       where: {
-        userId,
+        userId: userId,
         isCancelled: false,
         ride: { status: { in: ['REQUESTED', 'MATCHED', 'DRIVER_ARRIVED', 'STARTED'] } },
       },
@@ -137,24 +145,27 @@ export class RidesService {
       include: { ride: true },
     });
 
-    if (!entry || entry.userId !== userId) {
+    if (!entry) {
+      throw new ForbiddenException('Not your booking');
+    }
+    
+    if (entry.userId !== userId) {
       throw new ForbiddenException('Not your booking');
     }
 
-    if (['STARTED', 'COMPLETED'].includes(entry.ride.status)) {
+    if (entry.ride.status === 'STARTED' || entry.ride.status === 'COMPLETED') {
       throw new ForbiddenException('Cannot cancel after ride has started');
     }
 
-    await this.prisma.$transaction([
-      this.prisma.ridePassenger.update({
-        where: { id: ridePassengerId },
-        data: { isCancelled: true },
-      }),
-      this.prisma.ride.update({
-        where: { id: entry.rideId },
-        data: { occupiedSeats: { decrement: entry.seatsRequested } },
-      }),
-    ]);
+    await this.prisma.ridePassenger.update({
+      where: { id: ridePassengerId },
+      data: { isCancelled: true },
+    });
+    
+    await this.prisma.ride.update({
+      where: { id: entry.rideId },
+      data: { occupiedSeats: { decrement: entry.seatsRequested } },
+    });
 
     return { message: 'Ride cancelled successfully' };
   }
@@ -162,14 +173,13 @@ export class RidesService {
   async estimateFare(pickupZone: string, destinationZone: string, seatsRequested: number) {
     const soloFare = calculateFare(destinationZone, false);
     const pooledFare = calculateFare(destinationZone, true);
+    
     return {
-      pickupZone,
-      destinationZone,
-      seatsRequested,
-      soloFarePaisa: soloFare,
-      pooledFarePaisa: pooledFare,
-      soloFareTaka: (soloFare / 100).toFixed(2),
-      pooledFareTaka: (pooledFare / 100).toFixed(2),
+      pickupZone: pickupZone,
+      destinationZone: destinationZone,
+      seatsRequested: seatsRequested,
+      soloFare: soloFare,
+      pooledFare: pooledFare,
     };
   }
 

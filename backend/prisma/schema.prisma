@@ -31,7 +31,7 @@ model User {
   passwordHash String
   role         Role
   phone        String?
-  walletPaisa  Int      @default(0)
+  walletBalance  Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -93,10 +93,10 @@ model RidePassenger {
   pickupZone      String
   destinationZone String
   seatsRequested  Int     @default(1)
-  fareBasePaisa   Int     @default(0)
-  fareDistancePaisa Int   @default(0)
-  fareDiscountPaisa Int   @default(0)
-  fareTotalPaisa  Int     @default(0)
+  baseFare   Int     @default(0)
+  distanceFare Int   @default(0)
+  poolDiscount Int   @default(0)
+  totalFare  Int     @default(0)
   isCancelled     Boolean @default(false)
   joinedAt        DateTime @default(now())
 

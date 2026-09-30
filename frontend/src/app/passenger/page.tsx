@@ -2,7 +2,6 @@
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
-import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -56,7 +55,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Fare</p>
-              <p className="font-semibold">{currentRide.fareTotalPaisa / 100} BDT</p>
+              <p className="font-semibold">{currentRide.totalFare} BDT</p>
             </div>
           </div>
         </div>
@@ -83,9 +82,9 @@ export default function DashboardPage() {
               <tr key={ride.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(ride.joinedAt).toLocaleDateString()}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ride.pickupZone} → {ride.destinationZone}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ride.fareTotalPaisa / 100} BDT</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ride.totalFare} BDT</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <span className={cn("px-2 py-1 rounded text-xs", ride.isCancelled ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800")}>
+                  <span className={`px-2 py-1 rounded text-xs ${ride.isCancelled ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>
                     {ride.isCancelled ? 'CANCELLED' : ride.ride.status}
                   </span>
                 </td>

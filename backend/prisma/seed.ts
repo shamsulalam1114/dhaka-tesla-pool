@@ -17,7 +17,7 @@ async function main() {
       passwordHash: await bcrypt.hash('jashim123', 10),
       role: Role.DRIVER,
       phone: '01711000001',
-      walletPaisa: 0,
+      walletBalance: 0,
     },
   });
 
@@ -44,7 +44,7 @@ async function main() {
       passwordHash: await bcrypt.hash('nusrat123', 10),
       role: Role.PASSENGER,
       phone: '01711000002',
-      walletPaisa: 50000,
+      walletBalance: 500,
     },
   });
 
@@ -55,7 +55,7 @@ async function main() {
       passwordHash: await bcrypt.hash('rafiq123', 10),
       role: Role.PASSENGER,
       phone: '01711000003',
-      walletPaisa: 50000,
+      walletBalance: 500,
     },
   });
 
@@ -66,7 +66,7 @@ async function main() {
       passwordHash: await bcrypt.hash('shirin123', 10),
       role: Role.PASSENGER,
       phone: '01711000004',
-      walletPaisa: 50000,
+      walletBalance: 500,
     },
   });
 
@@ -88,10 +88,10 @@ async function main() {
         pickupZone: 'Banani',
         destinationZone: 'Mohakhali',
         seatsRequested: 1,
-        fareBasePaisa: 5000,
-        fareDistancePaisa: 2000,
-        fareDiscountPaisa: 1000,
-        fareTotalPaisa: 6000,
+        baseFare: 50,
+        distanceFare: 20,
+        poolDiscount: 10,
+        totalFare: 60,
       },
       {
         rideId: pooledRide.id,
@@ -99,10 +99,10 @@ async function main() {
         pickupZone: 'Banani',
         destinationZone: 'Gulshan 1',
         seatsRequested: 1,
-        fareBasePaisa: 5000,
-        fareDistancePaisa: 2500,
-        fareDiscountPaisa: 1000,
-        fareTotalPaisa: 6500,
+        baseFare: 50,
+        distanceFare: 25,
+        poolDiscount: 10,
+        totalFare: 65,
       },
     ],
   });

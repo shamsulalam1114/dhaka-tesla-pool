@@ -38,27 +38,28 @@ describe('RidesService & Pooling Logic', () => {
   });
 
   describe('Fare Calculation (Nusrat & Rafiq)', () => {
-    it('should correctly calculate solo vs pooled fares in paisa', async () => {
+    it('should correctly calculate solo vs pooled fares', async () => {
       const nusratEstimate = await service.estimateFare('Banani', 'Mohakhali', 1);
       const rafiqEstimate = await service.estimateFare('Banani', 'Gulshan 1', 1);
 
-      // Base: 5000, Mohakhali: 2000, Pool Discount: 1000
-      expect(nusratEstimate.soloFarePaisa).toBe(7000);
-      expect(nusratEstimate.pooledFarePaisa).toBe(6000);
+      // Base: 50, Mohakhali: 20, Pool Discount: 10
+      expect(nusratEstimate.soloFare).toBe(70);
+      expect(nusratEstimate.pooledFare).toBe(60);
 
-      // Base: 5000, Gulshan 1: 2500, Pool Discount: 1000
-      expect(rafiqEstimate.soloFarePaisa).toBe(7500);
-      expect(rafiqEstimate.pooledFarePaisa).toBe(6500);
+      // Base: 50, Gulshan 1: 25, Pool Discount: 10
+      expect(rafiqEstimate.soloFare).toBe(75);
+      expect(rafiqEstimate.pooledFare).toBe(65);
     });
   });
 
   describe('Capacity Constraints (The Shirin Problem)', () => {
-    it('should reject a ride request if Bullet capacity is exceeded', async () => {
+    it('should reject a ride request if capacity changes during transaction (concurrency)', async () => {
       mockPrisma.ridePassenger.findFirst.mockResolvedValue(null);
-      mockPrisma.ride.findFirst.mockResolvedValue({ id: 'ride1', driverId: 'jashim1', occupiedSeats: 2 });
+      // initially sees 2 seats available
+      mockPrisma.ride.findFirst.mockResolvedValue({ id: 'ride1', driverId: 'jashim1', occupiedSeats: 1 });
       mockPrisma.vehicle.findFirst.mockResolvedValue({ capacity: 3 });
       
-      // Attempting to book 2 seats when only 1 is available
+      // inside transaction, someone else took the seat, so only 1 seat available now
       mockPrisma.ride.findUnique.mockResolvedValue({ id: 'ride1', occupiedSeats: 2 });
 
       await expect(

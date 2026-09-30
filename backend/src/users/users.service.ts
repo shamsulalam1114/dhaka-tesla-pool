@@ -14,7 +14,7 @@ export class UsersService {
         email: true,
         role: true,
         phone: true,
-        walletPaisa: true,
+        walletBalance: true,
         createdAt: true,
       },
     });
