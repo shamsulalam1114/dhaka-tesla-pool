@@ -1,17 +1,25 @@
 'use client';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
+  const router = useRouter();
   const [rides, setRides] = useState([]);
   const [currentRide, setCurrentRide] = useState<any>(null);
 
   useEffect(() => {
-    fetchCurrentRide();
-    fetchHistory();
-  }, []);
+    if (!isLoading && !user) {
+      router.push('/login');
+      return;
+    }
+    if (user) {
+      fetchCurrentRide();
+      fetchHistory();
+    }
+  }, [user, isLoading]);
 
   const fetchCurrentRide = async () => {
     try {
@@ -27,12 +35,16 @@ export default function DashboardPage() {
     } catch (error) { console.error(error); }
   };
 
+  if (isLoading || !user) {
+    return <div className="flex h-screen items-center justify-center text-gray-500">Loading...</div>;
+  }
+
   return (
     <div className="max-w-4xl mx-auto mt-10 p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Welcome, {user?.name}</h1>
-          <p className="text-gray-600">Wallet Balance: {user?.walletBalance ?? 0} BDT</p>
+          <h1 className="text-3xl font-bold">Welcome, {user.name}</h1>
+          <p className="text-gray-600">Wallet Balance: {user.walletBalance} BDT</p>
         </div>
         <button onClick={logout} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Logout</button>
       </div>

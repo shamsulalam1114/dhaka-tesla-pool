@@ -20,6 +20,7 @@ export default function LoginPage() {
       const role = res.data.role;
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
+      login(token, role);
       if (role === 'DRIVER') {
         router.push('/driver');
       } else {

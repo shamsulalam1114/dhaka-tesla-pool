@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchUser = async (role: string) => {
+    setIsLoading(true);
     try {
       const endpoint = role === 'DRIVER' ? '/drivers/me' : '/users/me';
       const response = await api.get(endpoint);

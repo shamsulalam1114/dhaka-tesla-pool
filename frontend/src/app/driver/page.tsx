@@ -1,19 +1,27 @@
 'use client';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
 export default function DriverDashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
+  const router = useRouter();
   const [driverInfo, setDriverInfo] = useState<any>(null);
   const [pendingRides, setPendingRides] = useState([]);
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    fetchProfile();
-    fetchPending();
-    fetchHistory();
-  }, []);
+    if (!isLoading && !user) {
+      router.push('/login');
+      return;
+    }
+    if (user) {
+      fetchProfile();
+      fetchPending();
+      fetchHistory();
+    }
+  }, [user, isLoading]);
 
   const fetchProfile = async () => {
     try {
@@ -49,7 +57,7 @@ export default function DriverDashboardPage() {
       fetchPending();
       fetchHistory();
     } catch (e) {
-      alert('Could not accept ride. Ensure you are online and have capacity.');
+      alert('Could not accept ride. Make sure you are online.');
     }
   };
 
@@ -58,15 +66,19 @@ export default function DriverDashboardPage() {
       await api.patch(`/drivers/rides/${rideId}/status`, { status });
       fetchHistory();
     } catch (e) {
-      alert('Could not update status.');
+      alert('Could not update ride status.');
     }
   };
+
+  if (isLoading || !user) {
+    return <div className="flex h-screen items-center justify-center text-gray-500">Loading...</div>;
+  }
 
   return (
     <div className="max-w-5xl mx-auto mt-10 p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Driver Portal: {user?.name}</h1>
+          <h1 className="text-3xl font-bold">Driver Portal: {user.name}</h1>
           <p className="text-gray-600">Vehicle: {driverInfo?.vehicle?.name} ({driverInfo?.vehicle?.capacity} seats)</p>
         </div>
         <div className="flex items-center gap-4">
@@ -86,7 +98,7 @@ export default function DriverDashboardPage() {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <p className="font-semibold">{ride.pickupZone}</p>
-                    <p className="text-sm text-gray-500">{ride.occupiedSeats} Seats Requested</p>
+                    <p className="text-sm text-gray-500">{ride.occupiedSeats} Seat(s) Requested</p>
                   </div>
                   <button onClick={() => acceptRide(ride.id)} className="px-3 py-1 bg-black text-white text-sm rounded hover:bg-gray-800">Accept Pool</button>
                 </div>
