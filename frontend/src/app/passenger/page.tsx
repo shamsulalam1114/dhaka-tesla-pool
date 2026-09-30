@@ -32,7 +32,7 @@ export default function DashboardPage() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Welcome, {user?.name}</h1>
-          <p className="text-gray-600">Wallet Balance: {(user?.walletPaisa ?? 0) / 100} BDT</p>
+          <p className="text-gray-600">Wallet Balance: {user?.walletBalance ?? 0} BDT</p>
         </div>
         <button onClick={logout} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Logout</button>
       </div>
