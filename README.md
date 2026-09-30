@@ -110,4 +110,4 @@ If this app goes viral in Dhaka, the current setup would face performance issues
 I used AI tools to help speed up writing some of the basic boilerplate code (like Next.js UI setup, basic Tailwind styling, and generating the Prisma schema file). However, all the core logic, such as the pooling math, transaction handling, and ride status rules, were manually written and tested to ensure they work properly for the assignment.
 
 ## Demo Video
-[Insert Loom Video Link Here]
+[Watch the Demo Video](YOUR_LOOM_LINK_HERE)
