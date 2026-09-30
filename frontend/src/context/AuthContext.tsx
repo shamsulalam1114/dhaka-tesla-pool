@@ -8,6 +8,7 @@ type User = {
   email: string;
   role: 'PASSENGER' | 'DRIVER';
   phone: string;
+  walletPaisa: number;
 };
 
 type AuthContextType = {

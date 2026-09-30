@@ -2,6 +2,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -17,14 +18,14 @@ export default function DashboardPage() {
     try {
       const res = await api.get('/rides/me/current');
       setCurrentRide(res.data);
-    } catch (error) {}
+    } catch (error) { console.error(error); }
   };
 
   const fetchHistory = async () => {
     try {
       const res = await api.get('/users/me/rides');
       setRides(res.data);
-    } catch (error) {}
+    } catch (error) { console.error(error); }
   };
 
   return (

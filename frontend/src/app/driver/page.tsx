@@ -19,28 +19,28 @@ export default function DriverDashboardPage() {
     try {
       const res = await api.get('/drivers/me');
       setDriverInfo(res.data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
 
   const fetchPending = async () => {
     try {
       const res = await api.get('/drivers/rides/pending');
       setPendingRides(res.data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
 
   const fetchHistory = async () => {
     try {
       const res = await api.get('/drivers/rides/history');
       setHistory(res.data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
 
   const toggleOnline = async () => {
     try {
       const res = await api.patch('/drivers/me/status', { isOnline: !driverInfo?.isOnline });
       setDriverInfo(res.data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
 
   const acceptRide = async (rideId: string) => {

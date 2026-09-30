@@ -18,7 +18,7 @@ export default function BookRidePage() {
     try {
       const res = await api.get(`/rides/estimate?pickupZone=${pickup}&destinationZone=${dropoff}&seatsRequested=${seats}`);
       setEstimate(res.data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
 
   const handleBook = async () => {
